@@ -1,0 +1,10 @@
+**/target
+.run
+*.log
+.git
+.vscode
+.github
+examples
+whitepaper.md
+SPEC.md
+README.md

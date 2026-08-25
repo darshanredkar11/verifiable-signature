@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SDP-1 Semantic Delta Proof Engine — Demo Console</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="title">SDP-1 Semantic Delta Proof Engine — <span class="muted">Demo Console</span></div>
+    <div class="tagline">Document Payload &rarr; Schema-Guided Claim Extraction &rarr; Canonicalization &mathcal;C &rarr; Merkle Inclusion Proofs &rarr; Deterministic Delta.
+      <strong>Deterministic semantic evidence layer for document verification.</strong></div>
+  </header>
+
+  <div id="offline" class="offline hidden">
+    Service unreachable — start the service (<code>make run</code>) and reload. No output is ever faked.
+  </div>
+
+  <!-- INTRO / EXPLAINER -->
+  <section class="intro" id="intro">
+    <div class="intro-text">
+      <h2>What this protocol is</h2>
+      <p>Traditional byte-level signatures fail when documents undergo benign transformations (PDF/A archiving, OCR, locale formatting). <b>SDP-1</b> commits to a document's <b>semantic claims</b> using Merkle trees, producing <b>per-claim cryptographic inclusion proofs</b> and classifying change severity across a 5-level taxonomy.</p>
+      <div class="defs">
+        <p><b>Semantic Commitment (&mathcal;K)</b> &mdash; signed Merkle root of canonical claim hashes <code>SHA-256("SDP:leaf:" || h_i)</code>.</p>
+        <p><b>Canonicalization Pipeline (&mathcal;C)</b> &mdash; deterministic normalization (Unicode NFC, whitespace collapse, currency/date coercion) preserving legal semantics.</p>
+        <p><b>Merkle Inclusion Proof (&pi;)</b> &mdash; per-claim cryptographic proof verifying exact untouched and modified fields.</p>
+      </div>
+      <p class="map"><b>Protocol mapping:</b> SDP-1 provides a verifiable semantic delta evidence layer that operates directly on top of <b>EUDI Wallet &amp; eIDAS 2.0</b> Qualified Electronic Signatures (QES) and Verifiable Credentials (VCs).</p>
+      <div class="shield">
+        <svg class="shield-ico" viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M12 2 L20 5 V11 C20 16 16.5 20 12 22 C7.5 20 4 16 4 11 Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"></path></svg>
+        <span><b>Fail-Closed Security Guarantee:</b> 12 attack scenarios (byte tampering, currency swaps, claim insertions/deletions) fail closed.</span>
+      </div>
+    </div>
+    <div class="intro-diagram" aria-label="SDP-1 Protocol Data Flow: Document -> Claim Extractor -> Canonicalization -> Merkle Tree -> Ed25519 Signature -> Delta Engine">
+      <svg viewBox="0 0 660 168" width="660" height="168" role="img">
+        <defs>
+          <marker id="ah" markerWidth="8" markerHeight="8" refX="6" refY="2.5" orient="auto">
+            <path d="M0,0 L6,2.5 L0,5 Z" fill="#2563eb"></path>
+          </marker>
+          <marker id="ahg" markerWidth="8" markerHeight="8" refX="6" refY="2.5" orient="auto">
+            <path d="M0,0 L6,2.5 L0,5 Z" fill="#9ca3af"></path>
+          </marker>
+        </defs>
+        <path d="M 560 72 C 560 138, 100 138, 100 72" fill="none" stroke="#9ca3af" stroke-width="1.75" stroke-dasharray="5 4" marker-end="url(#ahg)"></path>
+        <text x="330" y="156" text-anchor="middle" font-size="11" fill="#6b7280">verifies proofs against signed root</text>
+        <line x1="160" y1="46" x2="256" y2="46" stroke="#2563eb" stroke-width="2" marker-end="url(#ah)"></line>
+        <text x="208" y="34" text-anchor="middle" font-size="12" font-weight="700" fill="#2563eb">claims &mathcal;E</text>
+        <line x1="404" y1="46" x2="496" y2="46" stroke="#2563eb" stroke-width="2" marker-end="url(#ah)"></line>
+        <text x="450" y="34" text-anchor="middle" font-size="12" font-weight="700" fill="#2563eb">Merkle Root &mathcal;R</text>
+        <g>
+          <rect x="20" y="20" width="140" height="52" rx="9" fill="#f8faff" stroke="#c7d2fe" stroke-width="1.5"></rect>
+          <text x="90" y="42" text-anchor="middle" font-size="14" font-weight="700" fill="#1a1d23">Document D</text>
+          <text x="90" y="60" text-anchor="middle" font-size="10.5" fill="#6b7280">JSON / PDF Payload</text>
+        </g>
+        <g>
+          <rect x="260" y="20" width="144" height="52" rx="9" fill="#f8faff" stroke="#c7d2fe" stroke-width="1.5"></rect>
+          <text x="332" y="42" text-anchor="middle" font-size="14" font-weight="700" fill="#1a1d23">Canonicalizer &mathcal;C</text>
+          <text x="332" y="60" text-anchor="middle" font-size="10.5" fill="#6b7280">NFC &middot; Currency &middot; Date</text>
+        </g>
+        <g>
+          <rect x="500" y="20" width="140" height="52" rx="9" fill="#f8faff" stroke="#c7d2fe" stroke-width="1.5"></rect>
+          <text x="570" y="42" text-anchor="middle" font-size="14" font-weight="700" fill="#1a1d23">Delta Engine</text>
+          <text x="570" y="60" text-anchor="middle" font-size="10.5" fill="#6b7280">Ed25519 &middot; 5 Taxonomies</text>
+        </g>
+      </svg>
+    </div>
+  </section>
+
+  <!-- RESOLUTION PIPELINE TRACE -->
+  <section class="pipeline" id="pipeline">
+    <h2>Deterministic Execution Pipeline <span class="tag">5-Step Protocol Sequence</span></h2>
+    <ol class="pipe" id="pipe">
+      <li class="pr info">
+        <div class="pnum">1</div>
+        <div class="pt">Claim Extraction &mathcal;E</div>
+        <div class="pd">Extracts Subject-Predicate-Value triples per schema.</div>
+      </li>
+      <li class="pr info">
+        <div class="pnum">2</div>
+        <div class="pt">Canonicalization &mathcal;C</div>
+        <div class="pd">Unicode NFC, whitespace trim, currency/date coercion.</div>
+      </li>
+      <li class="pr info">
+        <div class="pnum">3</div>
+        <div class="pt">Merkle Tree Hashing</div>
+        <div class="pd">Domain separation <code>SDP:leaf:</code> &amp; <code>SDP:internal:</code>.</div>
+      </li>
+      <li class="pr info">
+        <div class="pnum">4</div>
+        <div class="pt">Ed25519 Commitment</div>
+        <div class="pd">Signed Merkle root envelope &amp; public key binding.</div>
+      </li>
+      <li class="pr info">
+        <div class="pnum">5</div>
+        <div class="pt">Taxonomy Decision</div>
+        <div class="pd">Evaluates 5 severity levels &amp; inclusion proofs.</div>
+      </li>
+    </ol>
+  </section>
+
+  <main class="stage">
+    <!-- COLUMN 1: DOCUMENT SUBMITTER -->
+    <section class="col" id="col-doc">
+      <h2><span class="dot"></span>Document Payload</h2>
+      <p class="col-sub">Select a test scenario or edit payload/schema.</p>
+
+      <div class="scenarios">
+        <button class="scn" onclick="loadScenario('original')">1 &middot; Baseline Contract <span>Signed original (Rent: &euro;1,500)</span></button>
+        <button class="scn" onclick="loadScenario('reformatted')">2 &middot; Reformatted PDF/A <span>1500 EUR &amp; ISO dates (SEMANTICALLY_EQUIVALENT)</span></button>
+        <button class="scn" onclick="loadScenario('modified')">3 &middot; Modified Rent <span>Rent changed to &euro;1,800 (CRITICAL_CHANGE)</span></button>
+        <button class="scn" onclick="loadScenario('tampered')">4 &middot; Tampered Landlord <span>Landlord changed to Charlie (SEMANTIC_CHANGE)</span></button>
+        <button class="scn" onclick="loadScenario('format')">5 &middot; Format-Only Date Tweak <span>Start date layout shift (FORMAT_ONLY)</span></button>
+      </div>
+
+      <div class="freetext">
+        <label for="docInput">Document JSON Payload</label>
+        <textarea id="docInput" rows="7"></textarea>
+
+        <label for="schemaInput" style="margin-top: 10px; display: block;">Claim Schema Definition</label>
+        <textarea id="schemaInput" rows="5"></textarea>
+
+        <div class="row">
+          <button id="btnCommit" onclick="runCommit()">Commit Original</button>
+          <button id="btnVerify" onclick="runVerify()" class="btn" style="background: #10b981;">Verify Delta</button>
+        </div>
+      </div>
+
+      <div id="col1-out" class="panel"></div>
+    </section>
+
+    <!-- COLUMN 2: CANONICALIZER & CLAIMS -->
+    <section class="col" id="col-claims">
+      <h2><span class="dot"></span>Canonicalizer &mathcal;C <span class="tag">Deterministic Map</span></h2>
+      <p class="col-sub">Normalized claim triples and domain-separated hashes.</p>
+      <div id="col2-out" class="panel">
+        <p class="idle">Commit or verify a document payload to inspect canonical claim triples.</p>
+      </div>
+    </section>
+
+    <!-- COLUMN 3: ENGINE DECISION & EVIDENCE -->
+    <section class="col" id="col-engine">
+      <h2><span class="dot"></span>Engine <span class="tag">5-Level Taxonomy</span></h2>
+      <p class="col-sub">Deterministic decision, 6 verification checks &amp; Merkle proofs.</p>
+      <div id="col3-out" class="panel">
+        <p class="idle">Decision badges, verification checks, and Merkle inclusion proofs appear here.</p>
+      </div>
+    </section>
+  </main>
+
+  <!-- PROTOCOL ARTIFACT EXCHANGE -->
+  <section class="protocol" id="protocol">
+    <h2>Protocol Artifact Exchange <span class="tag">Signed Commitment &amp; Merkle Inclusion Proofs</span></h2>
+    <p class="col-sub">Cryptographic evidence produced on the wire &mdash; inspect signed root, Ed25519 signature, and proof paths.</p>
+    <div class="proto-grid">
+      <div class="pstep" id="pstep-1">
+        <h3>1 &middot; Signed Commitment Envelope</h3>
+        <div id="pbody-1" class="pbody idle">Commit a baseline document to produce an Ed25519 signed Merkle root.</div>
+      </div>
+      <div class="pconn" aria-hidden="true">&rarr;</div>
+      <div class="pstep" id="pstep-2">
+        <h3>2 &middot; Current Merkle Tree Root</h3>
+        <div id="pbody-2" class="pbody idle">Current document Merkle tree root and leaf hashes.</div>
+      </div>
+      <div class="pconn" aria-hidden="true">&rarr;</div>
+      <div class="pstep" id="pstep-3">
+        <h3>3 &middot; Dual Merkle Inclusion Proof Evidence</h3>
+        <div id="pbody-3" class="pbody idle">Original vs Current inclusion proofs (&pi;_orig &amp; &pi;_curr) per modified claim.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- RAW API LOG -->
+  <section class="rawwrap">
+    <details>
+      <summary>Raw REST API Exchanges (Proof of live execution)</summary>
+      <div id="raw-log" class="rawlog"></div>
+    </details>
+  </section>
+
+  <footer class="footer">
+    <span>SDP-1 Semantic Delta Proof Engine &bull; Spring Boot REST API (:8080) &bull; Rust Deterministic Core</span>
+    <span class="links">
+      <a href="/swagger-ui.html" target="_blank" rel="noopener">Swagger (api)</a>
+      <a href="/swagger-ui/" target="_blank" rel="noopener">Swagger (eng)</a>
+      <a href="/v3/api-docs" target="_blank" rel="noopener">OpenAPI Spec</a>
+    </span>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>

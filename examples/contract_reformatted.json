@@ -1,0 +1,8 @@
+{
+  "landlord": "Bob",
+  "tenant": "Alice",
+  "rent": "1500 EUR",
+  "deposit": "3000 EUR",
+  "start": "01.09.2026",
+  "end": "31.08.2026"
+}

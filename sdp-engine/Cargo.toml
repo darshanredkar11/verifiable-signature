@@ -1,0 +1,26 @@
+[package]
+name = "sdp-engine"
+version = "0.1.0"
+edition = "2021"
+description = "SDP-1: Semantic Delta Proof Engine - Cryptographically verifiable semantic integrity for documents"
+
+[lib]
+name = "sdp_engine"
+# cdylib: C-ABI shared library, loaded by Java's Foreign Function & Memory API.
+# rlib: normal Rust library, used by `cargo test` and by the CLI binary.
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+sha2 = "0.10"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+ed25519-dalek = { version = "2", features = ["rand_core"] }
+rand = "0.8"
+hex = "0.4"
+uuid = { version = "1", features = ["v4"] }
+chrono = { version = "0.4", features = ["serde"] }
+unicode-normalization = "0.1"
+clap = { version = "4.6.6", features = ["derive"] }
+
+[dev-dependencies]
+tempfile = "3"

@@ -1,0 +1,15 @@
+# Rust
+sdp-engine/target/
+sdp-engine/Cargo.lock.bak
+
+# Java
+sdp-api/target/
+*.class
+
+# Local run state
+.run/
+
+# OS / editor
+.DS_Store
+.vscode/
+.idea/

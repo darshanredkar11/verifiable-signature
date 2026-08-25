@@ -1,0 +1,11 @@
+# Render Blueprint — connect the repo, Render reads this and provisions the service.
+# Push to the connected branch to deploy; no manual dashboard config needed.
+services:
+  - type: web
+    name: sdp-1-engine
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    plan: free
+    healthCheckPath: /
+    autoDeploy: true
