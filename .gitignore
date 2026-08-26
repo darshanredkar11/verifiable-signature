@@ -13,3 +13,4 @@ sdp-api/target/
 .DS_Store
 .vscode/
 .idea/
+/cpurest
